@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding=utf-8 -*-
 from config.emailConf import sendEmail
 from config.pushbearConf import sendPushBear
