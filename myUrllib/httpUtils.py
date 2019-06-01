@@ -120,7 +120,7 @@ class HTTPClient(object):
         self.setHeadersReferer(urls["Referer"])
         if is_logger:
             logger.log(
-                u"url: {0}\n入参: {1}\n请求方式: {2}\n".format(req_url, data, method, ))
+                u"url: {0} 入参: {1} 请求方式: {2} ".format(req_url, data, method, ))
         self.setHeadersHost(urls["Host"])
         if is_test_cdn:
             url_host = self._cdn
@@ -136,15 +136,18 @@ class HTTPClient(object):
         for i in range(re_try):
             try:
                 # sleep(urls["s_time"]) if "s_time" in urls else sleep(0.001)
-                sleep(s_time)
+                if i != 0:
+                    sleep(s_time)
                 try:
                     requests.packages.urllib3.disable_warnings()
                 except:
                     pass
+                req_full_url=http + "://" + url_host + req_url
+                logger.log(u"request url:{} cookie:{}".format(req_full_url,self._s.cookies))
                 response = self._s.request(method=method,
                                            timeout=2,
                                            proxies=self._proxies,
-                                           url=http + "://" + url_host + req_url,
+                                           url=req_full_url,
                                            data=data,
                                            allow_redirects=allow_redirects,
                                            verify=False,
