@@ -119,14 +119,12 @@ class HTTPClient(object):
             self.resetHeaders()
         self.setHeadersReferer(urls["Referer"])
         if is_logger:
-            logger.log(
-                u"url: {0} 入参: {1} 请求方式: {2} ".format(req_url, data, method, ))
+            logger.log(u"url: {0} 入参: {1} 请求方式: {2} ".format(req_url, data, method, ))
         self.setHeadersHost(urls["Host"])
         if is_test_cdn:
             url_host = self._cdn
         elif is_cdn:
             if self._cdn:
-                # print(u"当前请求cdn为{}".format(self._cdn))
                 url_host = self._cdn
             else:
                 url_host = urls["Host"]
@@ -157,15 +155,13 @@ class HTTPClient(object):
                         return response.content
                     if response.content:
                         if is_logger:
-                            logger.log(
-                                u"出参：{0}".format(response.content))
+                            logger.log(u"出参：{0}".format(response.content))
                         if urls["is_json"]:
                             return json.loads(response.content.decode() if isinstance(response.content, bytes) else response.content)
                         else:
                             return response.content.decode("utf8", "ignore") if isinstance(response.content, bytes) else response.content
                     else:
-                        logger.log(
-                            u"url: {} 返回参数为空".format(urls["req_url"]))
+                        logger.log(u"url: {} 返回参数为空".format(urls["req_url"]))
                         continue
                 else:
                     sleep(urls["re_time"])
@@ -173,5 +169,4 @@ class HTTPClient(object):
                 pass
             except socket.error:
                 pass
-        print(error_data.get("massage"))
         return error_data

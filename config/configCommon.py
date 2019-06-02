@@ -11,9 +11,9 @@ rushRefreshMinTimeIntval = 2000
 rushRefreshMaxTimeIntval = 3600000
 rushRefreshTimeIntval = 100
 # 最早运行时间
-maxRunTime = 7
+maxRunTime = 6
 # 程序停止时间
-maxRunStopTime = 23
+maxRunStopTime = 24
 # 可售天数
 maxDate = 29
 

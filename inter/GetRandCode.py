@@ -3,6 +3,7 @@ from PIL import Image
 
 from config.ticketConf import _get_yaml
 from damatuCode.ruokuai import RClient
+import os
 
 try:
     raw_input      # Python 2
@@ -33,8 +34,9 @@ def getRandCode(is_auto_code, auto_code_type, result):
                         return ""
         else:
             img = Image.open('./tkcode.png')
-            img.show()
-            return codexy()
+            ss = img.show()
+            select_code = codexy()
+            return select_code
     except Exception as e:
         print(e)
 

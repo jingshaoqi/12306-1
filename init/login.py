@@ -3,6 +3,7 @@ import copy
 import random
 import time
 from collections import OrderedDict
+from config import logger
 from time import sleep
 
 from config.ticketConf import _get_yaml
@@ -34,7 +35,7 @@ class GoLogin:
         """
         :return:
         """
-        self.session.httpClint.send(self.session.urls["loginInitCdn1"])
+        res = self.session.httpClint.send(self.session.urls["loginInitCdn1"])
         uamtkStaticUrl = self.session.urls["uamtk-static"]
         uamtkStaticData = {"appid": "otn"}
         return self.session.httpClint.send(uamtkStaticUrl, uamtkStaticData)
@@ -52,16 +53,18 @@ class GoLogin:
         # }
         # fresult = self.session.httpClint.send(codeCheck, codeCheckData)
         codeCheckUrl = copy.deepcopy(self.session.urls["codeCheck1"])
-        codeCheckUrl["req_url"] = codeCheckUrl["req_url"].format(self.randCode, int(time.time() * 1000))
+        rand_req_url = codeCheckUrl["req_url"].format(self.randCode, int(time.time() * 1000))
+        codeCheckUrl["req_url"] = rand_req_url
         fresult = self.session.httpClint.send(codeCheckUrl)
-        fresult = eval(fresult.split("(")[1].split(")")[0])
+        tr=fresult.split("(")[1].split(")")[0]
+        fresult = eval(tr)
         if "result_code" in fresult and fresult["result_code"] == "4":
             print (u"验证码通过,开始登录..")
             return True
         else:
             if "result_message" in fresult:
                 print(fresult["result_message"])
-            sleep(1)
+            #sleep(1)
             self.session.httpClint.del_cookies()
 
     def baseLogin(self, user, passwd):
@@ -84,6 +87,7 @@ class GoLogin:
             print (u"登录成功")
             tk = self.auth()
             if "newapptk" in tk and tk["newapptk"]:
+                print("欢迎 {0} 登录成功，Oh, Yeah!".format(tk["name"]))
                 return tk["newapptk"]
             else:
                 return False
@@ -136,28 +140,38 @@ class GoLogin:
             raise UserPasswordException(u"温馨提示: 用户名或者密码为空，请仔细检查")
         login_num = 0
         while True:
+            # 发送消息到12306 判断是否需要验证码校验
             if loginConf(self.session):
                 # result = getPassCodeNewOrderAndLogin(session=self.session, imgType="login")
-                self.auth()
+                res_auth = self.auth()
 
+                # 发送消息获取cookie
                 devicesIdUrl = copy.deepcopy(self.session.urls["getDevicesId"])
                 devicesIdUrl["req_url"] = devicesIdUrl["req_url"].format(int(time.time() * 1000))
                 devicesIdRsp = self.session.httpClint.send(devicesIdUrl)
+
+                # 获取cookie
+                logger.log("{0}".format(devicesIdRsp))
                 devicesId = eval(devicesIdRsp.split("(")[1].split(")")[0].replace("'", ""))["dfp"]
                 if devicesId:
                     self.session.httpClint.set_cookies(RAIL_DEVICEID=devicesId)
 
+                # 下载验证码图片 并保存图片
                 result = getPassCodeNewOrderAndLogin1(session=self.session, imgType="login")
                 if not result:
                     continue
+
+                # 获取验证码图片的选择结果
                 self.randCode = getRandCode(self.is_auto_code, self.auto_code_type, result)
                 login_num += 1
-                self.auth()
+                res1_auth = self.auth()
                 if self.codeCheck():
+                    # 登录
                     uamtk = self.baseLogin(user, passwd)
                     if uamtk:
                         self.getUserName(uamtk)
                         break
+
             else:
                 loginAysnSuggest(self.session, username=user, password=passwd)
                 login_num += 1

@@ -28,7 +28,7 @@ from myException.ticketIsExitsException import ticketIsExitsException
 from myException.ticketNumOutException import ticketNumOutException
 from myUrllib.httpUtils import HTTPClient
 from utils.timeUtil import time_to_minutes, minutes_to_time
-
+from config import logger
 try:
     reload(sys)
     sys.setdefaultencoding('utf-8')
@@ -241,7 +241,9 @@ class select:
                           station_dates=self.station_dates,
                           ticke_peoples_num=len(self.ticke_peoples),
                           )
+                logger.log(u"cost time 1  query {}".format(datetime.datetime.now() - now))
                 queryResult = q.sendQuery()
+                logger.log(u"cost time 2  send query {}".format(datetime.datetime.now() - now))
                 # 查询接口
                 if queryResult.get("status", False):
                     train_no = queryResult.get("train_no", "")
@@ -260,12 +262,15 @@ class select:
                         s = getPassengerDTOs(session=self, ticket_peoples=self.ticke_peoples,
                                              set_type=seat_conf_2[seat],
                                              is_more_ticket_num=is_more_ticket_num)
+                        logger.log(u"cost time 3  getPassengerTDOs {}".format(datetime.datetime.now() - now))
                         getPassengerDTOsResult = s.getPassengerTicketStrListAndOldPassengerStr()
+                        logger.log(u"cost time 4   {}".format(datetime.datetime.now() - now))
                         if getPassengerDTOsResult.get("status", False):
                             self.passengerTicketStrList = getPassengerDTOsResult.get("passengerTicketStrList", "")
                             self.oldPassengerStr = getPassengerDTOsResult.get("oldPassengerStr", "")
                             self.set_type = getPassengerDTOsResult.get("set_type", "")
                         # 提交订单
+                        logger.log(u"cost time 5  query {}".format(datetime.datetime.now() - now))
                         if self.order_type == 1:  # 快读下单
                             a = autoSubmitOrderRequest(session=self,
                                                        secretStr=secretStr,
@@ -285,6 +290,9 @@ class select:
                                                      self.passengerTicketStrList, self.oldPassengerStr, train_date,
                                                      self.ticke_peoples)
                             sor.sendSubmitOrderRequest()
+                    end_time = datetime.datetime.now()
+                    cost_time=end_time - now
+                    logger.log(u"cost time {}".format(cost_time))
                 else:
                     random_time = round(random.uniform(sleep_time_s, sleep_time_t), 2)
                     print(u"正在第{0}次查询 随机停留时长：{6} 乘车日期: {1} 车次：{2} 查询无票 cdn轮询IP：{4}当前cdn总数：{5} 总耗时：{3}ms".format(num,
